@@ -38,6 +38,7 @@ import {
   replaceExt,
 } from '../util';
 import {getInstallTargets, run as installRunner} from './install';
+import { runBuiltInOptimize } from '../build/optimize';
 
 const CONCURRENT_WORKERS = require('os').cpus().length;
 
@@ -477,6 +478,21 @@ export async function command(commandOptions: CommandOptions) {
 
   // 5. Optimize the build.
   if (!config.buildOptions.watch) {
+    await runBuiltInOptimize(config.experiments.optimize);
+    await runPipelineOptimizeStep(buildDirectoryLoc, {
+      plugins: config.plugins,
+      isDev: false,
+      isSSR: config.experiments.ssr,
+      isHmrEnabled: false,
+      sourceMaps: config.buildOptions.sourceMaps,
+    });
+    await runPipelineCleanupStep(config);
+    logger.info(`${colors.underline(colors.green(colors.bold('▶ Build Complete!')))}\n\n`);
+    return;
+  }
+
+  // 5. Optimize the build (officially).
+  if (config.experiments.optimize) {
     await runPipelineCleanupStep(config);
     await runPipelineOptimizeStep(buildDirectoryLoc, {
       plugins: config.plugins,

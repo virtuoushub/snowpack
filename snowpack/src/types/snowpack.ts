@@ -179,6 +179,23 @@ export type MountEntry = {
   resolve: boolean;
 };
 
+export type BundleStrategy = 'load-efficiency' | 'cache-efficiency' | 'all' /* | ... */;
+export interface OptimizeOptions {
+    entrypoints: 'auto' | string[]; /* should this live here, or somewhere else? */
+    minifyJs: boolean;
+    minifyCss: boolean;
+    minifyHtml: boolean;
+    preloadAssets: boolean;
+    target: 'es2020' | 'es2019' | 'es2018' | 'es2017'; 
+    polyfill: boolean; /* can we polyfill based on target? */
+    bundle: boolean | BundleStrategy | {
+        strategy: BundleStrategy;
+        bundleSource: boolean;
+        bundleDependencies: boolean;
+        bundleDynamicImports: boolean;
+    };
+}
+
 // interface this library uses internally
 export interface SnowpackConfig {
   install: string[];
@@ -227,6 +244,8 @@ export interface SnowpackConfig {
       res: http.ServerResponse,
       next: (err?: Error) => void,
     ) => unknown;
+    /** (EXPERIMENTAL) TODO */
+    optimize?: OptimizeOptions,
   };
   _extensionMap: Record<string, string>;
 }
