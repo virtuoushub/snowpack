@@ -5,12 +5,13 @@ import yargs from 'yargs-parser';
 import {addCommand, rmCommand} from './commands/add-rm';
 import {command as initCommand} from './commands/init';
 import {command as buildCommand} from './commands/build';
-import {command as devCommand} from './commands/dev';
 import {command as installCommand} from './commands/install';
+import {command as devCommand} from './commands/dev';
 import {loadAndValidateConfig} from './config.js';
 import {logger} from './logger';
 import {CLIFlags} from './types/snowpack';
 import {clearCache, readLockfile} from './util.js';
+export {createConfiguration} from './config.js';
 export * from './types/snowpack';
 
 // Stable API (remember to include all in "./index.esm.js" wrapper)

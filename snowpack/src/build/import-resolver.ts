@@ -9,7 +9,7 @@ const cwd = process.cwd();
 
 interface ImportResolverOptions {
   fileLoc: string;
-  dependencyImportMap: ImportMap | null | undefined;
+  importMap?: ImportMap | null;
   config: SnowpackConfig;
 }
 
@@ -50,7 +50,7 @@ function resolveSourceSpecifier(spec: string, stats: fs.Stats | false, config: S
  */
 export function createImportResolver({
   fileLoc,
-  dependencyImportMap,
+  importMap,
   config,
 }: ImportResolverOptions) {
   return function importResolver(spec: string): string | false {
@@ -64,6 +64,13 @@ export function createImportResolver({
       return spec;
     }
 
+    if (importMap && importMap.imports[spec]) {
+      const mappedImport = importMap.imports[spec];
+      if (url.parse(mappedImport).protocol) {
+        return mappedImport;
+      }
+      return path.posix.join('/', config.buildOptions.metaDir, 'web_modules', mappedImport);
+    }
     if (spec.startsWith('/')) {
       const importStats = getImportStats(path.resolve(cwd, spec.substr(1)));
       return resolveSourceSpecifier(spec, importStats, config);
@@ -83,14 +90,8 @@ export function createImportResolver({
       const newSpec = getUrlForFile(importedFileLoc, config) || spec;
       return resolveSourceSpecifier(newSpec, importStats, config);
     }
-    if (dependencyImportMap) {
-      // NOTE: We don't need special handling for an alias here, since the aliased "from"
-      // is already the key in the import map. The aliased "to" value is also an entry.
-      const importMapEntry = dependencyImportMap.imports[spec];
-      if (importMapEntry) {
-        return path.posix.resolve(config.buildOptions.webModulesUrl, importMapEntry);
-      }
-    }
-    return false;
+    
+    return path.posix.join('/', config.buildOptions.metaDir, 'web_modules', spec);
+    // return false;
   };
 }
